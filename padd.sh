@@ -108,6 +108,9 @@ padd_logo_retro_1="${bold_text} ${yellow_text}_${green_text}_      ${blue_text}_
 padd_logo_retro_2="${bold_text}${yellow_text}|${green_text}_${blue_text}_${cyan_text}) ${red_text}/${yellow_text}\\ ${blue_text}|  ${red_text}\\${yellow_text}|  ${cyan_text}\\  ${reset_text}"
 padd_logo_retro_3="${bold_text}${green_text}|   ${red_text}/${yellow_text}-${green_text}-${blue_text}\\${cyan_text}|${magenta_text}_${red_text}_${yellow_text}/${green_text}|${blue_text}_${cyan_text}_${magenta_text}/  ${reset_text}"
 
+# Overrides
+pihole_setup_vars="${PIHOLE_SETUP_VARS:-/etc/pihole/setupVars.conf}"
+pihole_binary="${PIHOLE_BINARY_PATH:-pihole}"
 
 ############################################# GETTERS ##############################################
 
@@ -479,8 +482,8 @@ GetPiholeInformation() {
 
 GetVersionInformation() {
   # Check if version status has been saved
-  core_version=$(pihole -v -p | awk '{print $4}' | tr -d '[:alpha:]')
-  core_version_latest=$(pihole -v -p | awk '{print $(NF)}' | tr -d ')')
+  core_version=$("$pihole_binary" -v -p | awk '{print $4}' | tr -d '[:alpha:]')
+  core_version_latest=$("$pihole_binary" -v -p | awk '{print $(NF)}' | tr -d ')')
 
   # if core_version is something else then x.xx or x.xx.xxx set it to N/A
   if ! echo "${core_version}" | grep -qE '^[0-9]+([.][0-9]+){1,2}$' || [ "${core_version_latest}" = "ERROR" ]; then
@@ -502,8 +505,8 @@ GetVersionInformation() {
 
   # Gather web version information...
   if [ "$INSTALL_WEB_INTERFACE" = true ]; then
-    web_version=$(pihole -v -a | awk '{print $4}' | tr -d '[:alpha:]')
-    web_version_latest=$(pihole -v -a | awk '{print $(NF)}' | tr -d ')')
+    web_version=$("$pihole_binary" -v -a | awk '{print $4}' | tr -d '[:alpha:]')
+    web_version_latest=$("$pihole_binary" -v -a | awk '{print $(NF)}' | tr -d ')')
 
     # if web_version is something else then x.xx or x.xx.xxx set it to N/A
     if ! echo "${web_version}" | grep -qE '^[0-9]+([.][0-9]+){1,2}$' || [ "${web_version_latest}" = "ERROR" ]; then
@@ -529,8 +532,8 @@ GetVersionInformation() {
   fi
 
   # Gather FTL version information...
-  ftl_version=$(pihole -v -f | awk '{print $4}' | tr -d '[:alpha:]')
-  ftl_version_latest=$(pihole -v -f | awk '{print $(NF)}' | tr -d ')')
+  ftl_version=$("$pihole_binary" -v -f | awk '{print $4}' | tr -d '[:alpha:]')
+  ftl_version_latest=$("$pihole_binary" -v -f | awk '{print $(NF)}' | tr -d ')')
 
   # if ftl_version is something else then x.xx or x.xx.xxx set it to N/A
   if ! echo "${ftl_version}" | grep -qE '^[0-9]+([.][0-9]+){1,2}$' || [ "${ftl_version_latest}" = "ERROR" ]; then
@@ -991,7 +994,7 @@ OutputJSON() {
 
 StartupRoutine(){
     # Get config variables
-  . /etc/pihole/setupVars.conf
+  . "$pihole_setup_vars"
 
   if [ "$1" = "pico" ] || [ "$1" = "nano" ] || [ "$1" = "micro" ]; then
     PrintLogo "$1"
@@ -1117,7 +1120,7 @@ NormalPADD() {
 
     # Get uptime, CPU load, temp, etc. every 5 seconds
     if [ $((now - LastCheckSystemInformation)) -ge 5 ]; then
-      . /etc/pihole/setupVars.conf
+      . "$pihole_setup_vars"
       GetSystemInformation ${padd_size}
       LastCheckSystemInformation="${now}"
     fi
